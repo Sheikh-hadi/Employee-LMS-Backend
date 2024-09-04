@@ -3,6 +3,12 @@ import mongoose, { Schema } from 'mongoose';
 const employeeSchema = new Schema(
 
     {
+        id: {
+            type: String,
+            required: true,
+            trim: true,
+            unique: true,
+        },
         firstName: {
             type: String,
             required: true,
@@ -97,6 +103,10 @@ const employeeSchema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'User',
             // required: true,
+        },
+        status: {
+            type: Boolean,
+            default: true
         }
     },
     {

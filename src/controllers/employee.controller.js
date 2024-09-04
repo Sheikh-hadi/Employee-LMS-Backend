@@ -27,8 +27,11 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
     if (existedUser) {
         return res.status(400).json(new ApiError(400, "Employee already exists"));
     }
+   const employeeList = await Employee.find();
+   const id = employeeList.length + 1;
 
     const employee = await Employee.create({
+        id,
         firstName,
         lastName,
         email,
@@ -57,5 +60,42 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
         .status(201)
         .json(new ApiResponse(201, createdEmployee, "Employee created successfully"));
 })
+
+const updateEmployee = AsyncHandler(async (req, res, next) => {
+    const { firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation, salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber, guardianRelationship } = req.body;
+    const employeeId = req.params.id;
+    const employee = await Employee.findById(employeeId);
+    if (!employee) {
+        return res.status(404).json(new ApiError(404, "Employee not found"));
+    }
+    const updatedEmployee = await Employee.findByIdAndUpdate(
+        employeeId,
+        {
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            cnic,
+            address,
+            gender,
+            dateOfBirth,
+            designation,
+            salary,
+            contract,
+            bankName,
+            accountTitle,
+            accountNumber,
+            guardianName,
+            guardianPhoneNumber,
+            guardianRelationship
+        },
+        { new: true }
+    )
+    if (!updatedEmployee) {
+        return res.status(400).json(new ApiError(400, "Employee not updated"))
+    }
+})
+
+
 
 export { getEmployee, createEmployee };
