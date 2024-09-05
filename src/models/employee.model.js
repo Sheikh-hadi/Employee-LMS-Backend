@@ -76,7 +76,6 @@ const employeeSchema = new Schema(
             type: String,
             required: true,
             trim: true,
-            unique: true,
         },
         accountNumber: {
             type: Number,

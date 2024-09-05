@@ -13,53 +13,54 @@ const getEmployee = AsyncHandler(async (req, res, next) => {
         .json(new ApiResponse(200, employee, "Employee Fetch Data Successfully"));
 });
 
-const createEmployee = AsyncHandler(async (req, res, next) => {
-    const { firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation, salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber, guardianRelationship } = req.body;
 
-    if ([firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation, salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber, guardianRelationship].some((field) => field?.toString().trim() === "")) {
+const createEmployee = AsyncHandler(async (req, res, next) => {
+    const {
+        firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation, 
+        salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber, 
+        guardianRelationship
+    } = req.body;
+
+    // Check if any required field is missing
+    if ([firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation, 
+         salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber, 
+         guardianRelationship].some((field) => !field || field.toString().trim() === "")) {
         return res.status(400).json(new ApiError(400, "All fields are required"));
     }
 
-    const existedUser = await Employee.findOne({
-        $or: [{ cnic }, { email }]
-    });
-    console.log(existedUser);
+    // Check if the employee already exists
+    const existedUser = await Employee.findOne({ $or: [{ cnic }, { email }] });
     if (existedUser) {
         return res.status(400).json(new ApiError(400, "Employee already exists"));
     }
-    const employeeList = await Employee.find();
-    const id = employeeList.length + 1;
 
-    const employee = await Employee.create({
-        id,
-        firstName,
-        lastName,
-        email,
-        phoneNumber,
-        cnic,
-        address,
-        gender,
-        dateOfBirth,
-        designation,
-        salary,
-        contract,
-        bankName,
-        accountTitle,
-        accountNumber,
-        guardianName,
-        guardianPhoneNumber,
-        guardianRelationship
+    // Generate new employee ID
+    const employeeCount = await Employee.countDocuments(); // More reliable way to count documents
+    const id = employeeCount + 1;
+
+    // Create new employee
+    const employee = new Employee({
+        id, firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, 
+        designation, salary, contract, bankName, accountTitle, accountNumber, guardianName, 
+        guardianPhoneNumber, guardianRelationship
     });
 
-    const createdEmployee = await Employee.findById(employee._id);
-    console.log(createdEmployee);
-    if (!createdEmployee) {
-        return res.status(400).json(new ApiError(400, "Employee not created"));
+    try {
+        const createdEmployee = await employee.save();
+        return res.status(201).json(new ApiResponse(201, createdEmployee, "Employee created successfully"));
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            // Handle Mongoose validation errors
+            const validationErrors = Object.keys(error.errors).map(key => ({
+                field: key,
+                message: error.errors[key].message
+            }));
+            return res.status(400).json(new ApiError(400, "Validation errors", validationErrors));
+        }
+        return res.status(500).json(new ApiError(500, "Internal Server Error"));
     }
-    return res
-        .status(201)
-        .json(new ApiResponse(201, createdEmployee, "Employee created successfully"));
-})
+});
+
 
 const updateEmployee = AsyncHandler(async (req, res, next) => {
     const { firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation, salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber, guardianRelationship } = req.body;
