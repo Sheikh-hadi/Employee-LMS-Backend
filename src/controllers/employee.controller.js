@@ -27,8 +27,8 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
     if (existedUser) {
         return res.status(400).json(new ApiError(400, "Employee already exists"));
     }
-   const employeeList = await Employee.find();
-   const id = employeeList.length + 1;
+    const employeeList = await Employee.find();
+    const id = employeeList.length + 1;
 
     const employee = await Employee.create({
         id,
@@ -96,6 +96,16 @@ const updateEmployee = AsyncHandler(async (req, res, next) => {
     }
 })
 
+const deleteEmployee = AsyncHandler(async (req, res) => {
+    const id = req.params.id;
+    const result = await Employee.deleteOne(id);
+
+    if (!result) {
+        return res.status(404).json({ message: 'Employee not found' });
+    }
+
+    res.status(200).json({ message: 'Employee deleted successfully' });
+});
 
 
-export { getEmployee, createEmployee };
+export { getEmployee, createEmployee, deleteEmployee };
