@@ -13,10 +13,6 @@ const getEmployee = AsyncHandler(async (req, res, next) => {
         .json(new ApiResponse(200, employee, "Employee Fetch Data Successfully"));
 });
 
-const AsyncHandler = require('express-async-handler'); // Assuming you are using this library
-const ApiError = require('../utils/ApiError'); // Assuming this is a custom class for error handling
-const ApiResponse = require('../utils/ApiResponse'); // Assuming this is a custom class for successful responses
-const Employee = require('../models/Employee'); // Import your Employee model
 
 const createEmployee = AsyncHandler(async (req, res, next) => {
     const {
@@ -51,7 +47,6 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
 
     try {
         const createdEmployee = await employee.save();
-        console.log("createdEmployee: ", createdEmployee);
         return res.status(201).json(new ApiResponse(201, createdEmployee, "Employee created successfully"));
     } catch (error) {
         if (error.name === 'ValidationError') {
@@ -66,7 +61,6 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
     }
 });
 
-module.exports = createEmployee;
 
 const updateEmployee = AsyncHandler(async (req, res, next) => {
     const { firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation, salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber, guardianRelationship } = req.body;
