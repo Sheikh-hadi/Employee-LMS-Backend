@@ -16,20 +16,21 @@ const getEmployee = AsyncHandler(async (req, res, next) => {
 
 const createEmployee = AsyncHandler(async (req, res, next) => {
     const {
-        firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation, 
-        salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber, 
+        firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation,
+        salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber,
         guardianRelationship
     } = req.body;
 
     // Check if any required field is missing
-    if ([firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation, 
-         salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber, 
-         guardianRelationship].some((field) => !field || field.toString().trim() === "")) {
+    if ([firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation,
+        salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber,
+        guardianRelationship].some((field) => !field || field.toString().trim() === "")) {
         return res.status(400).json(new ApiError(400, "All fields are required"));
     }
 
     // Check if the employee already exists
     const existedUser = await Employee.findOne({ $or: [{ cnic }, { email }] });
+    console.log("existedUser: ", existedUser)
     if (existedUser) {
         return res.status(400).json(new ApiError(400, "Employee already exists"));
     }
@@ -40,13 +41,15 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
 
     // Create new employee
     const employee = new Employee({
-        id, firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, 
-        designation, salary, contract, bankName, accountTitle, accountNumber, guardianName, 
+        id, firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth,
+        designation, salary, contract, bankName, accountTitle, accountNumber, guardianName,
         guardianPhoneNumber, guardianRelationship
     });
 
+
     try {
         const createdEmployee = await employee.save();
+        console.log("employee: ", employee)
         return res.status(201).json(new ApiResponse(201, createdEmployee, "Employee created successfully"));
     } catch (error) {
         if (error.name === 'ValidationError') {
@@ -99,14 +102,39 @@ const updateEmployee = AsyncHandler(async (req, res, next) => {
 
 const deleteEmployee = AsyncHandler(async (req, res) => {
     const id = req.params.id;
-    const result = await Employee.deleteOne(id);
+    console.log("id: ", id)
+    console.log("reqbody: ", req.body)
+    console.log("reqparams: ", req.params)
+    // Check if ID is provided
+    if (!id) {
+        return res.status(400).json({ message: 'ID parameter is required' });
+    }
 
-    if (!result) {
+    // Delete the employee
+    const result = await Employee.deleteOne({ id: id });
+    console.log("result: ", result)
+    // Check if the deletion was successful
+    if (result.deletedCount === 0) {
         return res.status(404).json({ message: 'Employee not found' });
     }
 
-    res.status(200).json({ message: 'Employee deleted successfully' });
+    // Fetch all remaining employees
+    const allEmployees = await Employee.find();
+    console.log("allEmployees: ", allEmployees)
+
+    const bulkOps = allEmployees.map((employee, index) => ({
+        updateOne: {
+            filter: { _id: employee._id },
+            update: { $set: { id: index + 1 } }
+        }
+    }));
+
+    // 
+    await Employee.bulkWrite(bulkOps);
+
+    res.status(200).json({ message: 'Employee deleted and IDs updated successfully' });
 });
+
 
 
 export { getEmployee, createEmployee, deleteEmployee };
