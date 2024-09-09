@@ -84,7 +84,7 @@ const updateEmployee = AsyncHandler(async (req, res) => {
     const updatedEmployee = await Employee.findOneAndUpdate(
         { "id": id },
         { $set: req.body.formValue },
-        { new: true }  
+        { new: true }
     );
     console.log("updatedEmployee: ", updatedEmployee)
     if (!updatedEmployee) {
