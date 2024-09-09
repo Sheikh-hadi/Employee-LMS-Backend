@@ -32,11 +32,12 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
     const existedUser = await Employee.findOne({ $or: [{ cnic }, { email }] });
     console.log("existedUser: ", existedUser)
     if (existedUser) {
-        return res.status(400).json(new ApiError(400, "Employee already exists"));
+        return res.status(400).json(new ApiError(400, `${existedUser.firstName} ${existedUser.lastName} already exists with\nThis Email: ${existedUser.email}`
+        ));
     }
 
     // Generate new employee ID
-    const employeeCount = await Employee.countDocuments(); // More reliable way to count documents
+    const employeeCount = await Employee.countDocuments();
     const id = employeeCount + 1;
 
     // Create new employee
@@ -49,8 +50,7 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
 
     try {
         const createdEmployee = await employee.save();
-        console.log("employee: ", employee)
-        return res.status(201).json(new ApiResponse(201, createdEmployee, "Employee created successfully"));
+        return res.status(201).json(new ApiResponse(201, createdEmployee, `${createdEmployee.firstName} ${createdEmployee.lastName} with this mail is ${createdEmployee.email} created successfully`));
     } catch (error) {
         if (error.name === 'ValidationError') {
             // Handle Mongoose validation errors
@@ -65,51 +65,50 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
 });
 
 
-const updateEmployee = AsyncHandler(async (req, res, next) => {
-    const { firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation, salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber, guardianRelationship } = req.body;
-    const employeeId = req.params.id;
-    const employee = await Employee.findById(employeeId);
+const updateEmployee = AsyncHandler(async (req, res) => {
+    const id = req.params.id;
+    // console.log("id: ", id)
+    console.log("reqbody: ", req.body)
+    // console.log("reqparams: ", req.params)
+    // Check if ID is provided
+    if (!id) {
+        return res.status(400).json({ message: 'ID parameter is required' });
+    }
+    // Find the employee by ID
+    const employee = await Employee.findOne({ id: id });
+    // console.log("employee: ", employee)
     if (!employee) {
-        return res.status(404).json(new ApiError(404, "Employee not found"));
+        return res.status(404).json({ message: 'Employee not found' });
     }
-    const updatedEmployee = await Employee.findByIdAndUpdate(
-        employeeId,
-        {
-            firstName,
-            lastName,
-            email,
-            phoneNumber,
-            cnic,
-            address,
-            gender,
-            dateOfBirth,
-            designation,
-            salary,
-            contract,
-            bankName,
-            accountTitle,
-            accountNumber,
-            guardianName,
-            guardianPhoneNumber,
-            guardianRelationship
-        },
-        { new: true }
-    )
+    // Update the employee
+    const updatedEmployee = await Employee.findOneAndUpdate(
+        { "id": id },
+        { $set: req.body.formValue },
+        { new: true }  
+    );
+    console.log("updatedEmployee: ", updatedEmployee)
     if (!updatedEmployee) {
-        return res.status(400).json(new ApiError(400, "Employee not updated"))
+        return res.status(404).json({ message: 'Employee not found' });
     }
+    return res.status(200).json({ message: `${updatedEmployee.firstName} ${updatedEmployee.lastName} updated successfully`, updatedEmployee });
 })
 
 const deleteEmployee = AsyncHandler(async (req, res) => {
     const id = req.params.id;
     console.log("id: ", id)
-    console.log("reqbody: ", req.body)
-    console.log("reqparams: ", req.params)
+    // console.log("reqbody: ", req.body)
+    // console.log("reqparams: ", req.params)
     // Check if ID is provided
     if (!id) {
         return res.status(400).json({ message: 'ID parameter is required' });
     }
 
+    // Find the employee by ID
+    const employee = await Employee.findOne({ id: id });
+    console.log("employee: ", employee)
+    if (!employee) {
+        return res.status(404).json({ message: 'Employee not found' });
+    }
     // Delete the employee
     const result = await Employee.deleteOne({ id: id });
     console.log("result: ", result)
@@ -132,9 +131,12 @@ const deleteEmployee = AsyncHandler(async (req, res) => {
     // 
     await Employee.bulkWrite(bulkOps);
 
-    res.status(200).json({ message: 'Employee deleted and IDs updated successfully' });
+    res.status(200).json({
+        message: `${employee.firstName} ${" "} ${employee.lastName}
+         which id: ${id}  deleted successfully`
+    });
 });
 
 
 
-export { getEmployee, createEmployee, deleteEmployee };
+export { getEmployee, createEmployee, deleteEmployee, updateEmployee };
