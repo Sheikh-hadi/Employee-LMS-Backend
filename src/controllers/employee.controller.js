@@ -38,10 +38,12 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
 
     // Generate new employee ID
     const employeeCount = await Employee.countDocuments();
+    console.log("employeeCount: ", employeeCount)
     const id = employeeCount + 1;
+    console.log("id: ", id)
 
     // Create new employee
-    const employee = new Employee({
+    const employee = new Employee.create({
         id, firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth,
         designation, salary, contract, bankName, accountTitle, accountNumber, guardianName,
         guardianPhoneNumber, guardianRelationship
@@ -49,8 +51,10 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
 
 
     try {
-        const createdEmployee = await employee.save();
-
+        const createdEmployee =   await User.findById(employee.id).select(
+            "-password -refreshToken"
+        );
+        console.log("createdEmployee: ", createdEmployee)
         return res.status(201).json(new ApiResponse(201, createdEmployee, `${createdEmployee.firstName} ${createdEmployee.lastName} with this mail is ${createdEmployee.email} created successfully`));
     } catch (error) {
         if (error.name === 'ValidationError') {
