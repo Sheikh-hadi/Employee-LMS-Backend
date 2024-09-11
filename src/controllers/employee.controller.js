@@ -50,6 +50,7 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
 
     try {
         const createdEmployee = await employee.save();
+
         return res.status(201).json(new ApiResponse(201, createdEmployee, `${createdEmployee.firstName} ${createdEmployee.lastName} with this mail is ${createdEmployee.email} created successfully`));
     } catch (error) {
         if (error.name === 'ValidationError') {
@@ -107,10 +108,10 @@ const deleteEmployee = AsyncHandler(async (req, res) => {
     const employee = await Employee.findOne({ id: id });
     console.log("employee: ", employee)
     if (!employee) {
-        return res.status(404).json({ message: 'Employee not found' });
+        return res.status(404).json({ message: "Employee Not Found" });
     }
     // Delete the employee
-    const result = await Employee.deleteOne({ id: id });
+    const result = await Employee.deleteOne({ "id": id });
     console.log("result: ", result)
     // Check if the deletion was successful
     if (result.deletedCount === 0) {

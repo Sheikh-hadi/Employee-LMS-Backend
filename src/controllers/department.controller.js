@@ -5,8 +5,8 @@ import { ApiResponse } from "../utilis/ApiResponse.js";
 
 const getDepartment = AsyncHandler(async (req, res, next) => {
     const department = await Department.find();
-    if (!department.length > 0) {
-        return res.status(404).json(new ApiError(404, " Not Record Found"));
+    if (!department.length === 0) {
+        return res.status(404).json(new ApiError(404, "Not Record Found"));
     }
     return res
         .status(201)
@@ -63,6 +63,8 @@ const deleteDepartment = AsyncHandler(async (req, res, next) => {
 const updateDepartment = AsyncHandler(async (req, res, next) => {
     const id = req.params.id;
     const { name } = req.body;
+    console.log("id: ", id)
+    console.log("name: ", name)
     const department = await Department.findOne({ id: id });
     if (!department) {
         return res.status(404).json(new ApiError(404, "Department Not Found"));

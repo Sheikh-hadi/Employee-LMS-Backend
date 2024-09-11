@@ -4,6 +4,12 @@ import jwt from "jsonwebtoken";
 
 const userSchema = new Schema(
     {
+        id: {
+            type: String,
+            required: true,
+            index: true,
+            trim: true,
+        },
         fullName: {
             type: String,
             required: true,
@@ -29,6 +35,14 @@ const userSchema = new Schema(
             required: true,
             trim: true,
         },
+        avatar: {
+            type: String, // cloudinary url
+            // required: true,
+        },
+        refreshToken: {
+            type: String
+        }
+
     },
     {
         timestamps: true,
@@ -41,7 +55,7 @@ userSchema.pre("save", async function (next) {
     this.password = await bcrypt.hash(this.password, 10);
 });
 
-userSchemarSchema.methods.comparePassword = async function (enteredPassword) {
+userSchema.methods.comparePassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
