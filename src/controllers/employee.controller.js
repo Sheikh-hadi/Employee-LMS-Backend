@@ -43,7 +43,7 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
     console.log("id: ", id)
 
     // Create new employee
-    const employee = new Employee.create({
+    const employee = await Employee.create({
         id, firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth,
         designation, salary, contract, bankName, accountTitle, accountNumber, guardianName,
         guardianPhoneNumber, guardianRelationship
@@ -51,20 +51,22 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
 
 
     try {
-        const createdEmployee =   await User.findById(employee.id).select(
-            "-password -refreshToken"
-        );
+        let createdEmployee = await Employee.find({ "id": employee.id })
+        createdEmployee = createdEmployee[0]
+
         console.log("createdEmployee: ", createdEmployee)
         return res.status(201).json(new ApiResponse(201, createdEmployee, `${createdEmployee.firstName} ${createdEmployee.lastName} with this mail is ${createdEmployee.email} created successfully`));
     } catch (error) {
         if (error.name === 'ValidationError') {
-            // Handle Mongoose validation errors
+
             const validationErrors = Object.keys(error.errors).map(key => ({
                 field: key,
                 message: error.errors[key].message
             }));
+            console.log("validationErrors: ", validationErrors)
             return res.status(400).json(new ApiError(400, "Validation errors", validationErrors));
         }
+        console.log("error: ", error)
         return res.status(500).json(new ApiError(500, "Internal Server Error"));
     }
 });
