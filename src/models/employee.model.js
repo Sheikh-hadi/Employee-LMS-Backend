@@ -4,7 +4,7 @@ const employeeSchema = new Schema(
 
     {
         id: {
-            type: String,
+            type: Number,
             required: true,
             trim: true,
             unique: true,
