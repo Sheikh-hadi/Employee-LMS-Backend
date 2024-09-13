@@ -1,6 +1,6 @@
-import app from './app.js';
+import app from './src/app.js';
 import dotenv from 'dotenv';
-import conection from './dB/conection.js';
+import conection from './src/dB/conection.js';
 
 conection()
     .then(() => {
