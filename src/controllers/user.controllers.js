@@ -4,6 +4,36 @@ import { ApiError } from "../utilis/ApiError.js"
 import { ApiResponse } from "../utilis/ApiResponse.js"
 import jwt from "jsonwebtoken";
 
+
+
+const getUser = AsyncHandler(async (req, res, next) => {
+    const user = await User.find().select("-password -refreshToken ");
+    console.log("user", user)
+    if (!user.length) {
+        return res.status(404).json(new ApiError(404, "User does not exist"))
+    }
+    return res
+        .status(200)
+        .json(new ApiResponse(200, user, "User Fetch Data Sucessfully"))
+})
+
+const getUserById = AsyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+    console.log("id: ", id);
+    if (!id) {
+        return res.status(400).json(new ApiError(400, "User id is required"))
+    }
+    let user = await User.find({ "id": id })
+    console.log("user: ", user)
+    if (!user.length) {
+        return res.status(400).json(new ApiError(400, "User not found"))
+    }
+    user = user[0]
+    return res
+        .status(200)
+        .json(new ApiResponse(200, user, "User Fetch Data Sucessfully"))
+})
+
 const generateAccessAndRefereshTokens = async (userId) => {
     try {
         const user = await User.findById(userId);
@@ -74,15 +104,7 @@ const registerUser = AsyncHandler(async (req, res, next) => {
         .json(new ApiResponse(200, createdUser, "User created successfully"))
 });
 
-const getUser = AsyncHandler(async (req, res, next) => {
-    const user = await User.find().select("-password -refreshToken ");
-    if (!user.length) {
-        return res.status(404).json(new ApiError(404, "User does not exist"))
-    }
-    return res
-        .status(200)
-        .json(ApiResponse(200, user, "User Fetch Data Sucessfully"))
-})
+
 
 const loginUser = AsyncHandler(async (req, res, next) => {
     const { email, password, userName } = req.body;
@@ -138,7 +160,7 @@ const deleteUser = AsyncHandler(async (req, res, next) => {
         return res.status(400).json(new ApiError(400, "User id is required"))
     }
     let user = await User.find({ "id": id })
-    console.log("user: ",user)
+    console.log("user: ", user)
     if (!user.length) {
         return res.status(400).json(new ApiError(400, "User not found"))
     }
@@ -225,4 +247,4 @@ const refreshAccessToken = AsyncHandler(async (req, res) => {
 
 })
 
-export { getUser, registerUser, deleteUser, loginUser, logoutUser, refreshAccessToken }
+export { getUser, registerUser, deleteUser, loginUser, logoutUser, refreshAccessToken, getUserById }

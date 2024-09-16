@@ -41,6 +41,26 @@ const userSchema = new Schema(
         },
         refreshToken: {
             type: String
+        },
+        ContacNumber: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        address: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        role: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        status: {
+            type: Boolean,
+            required: true,
+            trim: true,
         }
 
     },
