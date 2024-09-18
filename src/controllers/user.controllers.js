@@ -23,7 +23,7 @@ const getUserById = AsyncHandler(async (req, res, next) => {
     if (!id) {
         return res.status(400).json(new ApiError(400, "User id is required"))
     }
-    let user = await User.find({ "id": id })
+    let user = await User.find({ "id": id }).select("-password -refreshToken ")
     console.log("user: ", user)
     if (!user.length) {
         return res.status(400).json(new ApiError(400, "User not found"))

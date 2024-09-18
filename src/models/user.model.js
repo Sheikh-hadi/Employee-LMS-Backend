@@ -42,7 +42,7 @@ const userSchema = new Schema(
         refreshToken: {
             type: String
         },
-        ContacNumber: {
+        contacNumber: {
             type: String,
             required: true,
             trim: true,
@@ -61,6 +61,7 @@ const userSchema = new Schema(
             type: Boolean,
             required: true,
             trim: true,
+            default: true,
         }
 
     },
