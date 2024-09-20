@@ -99,9 +99,8 @@ const employeeSchema = new Schema(
             trim: true,
         },
         author: {
-            type: Schema.Types.ObjectId,
-            ref: 'User',
-            required: true,
+           type: String,
+           required: true,
         },
         status: {
             type: Boolean,

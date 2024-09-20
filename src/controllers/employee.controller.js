@@ -15,8 +15,8 @@ const getEmployee = AsyncHandler(async (req, res, next) => {
 
 
 const createEmployee = AsyncHandler(async (req, res, next) => {
-    // console.log("req.body in createEmployee", req.body)
-    // console.log("req.body in createEmployee", req)
+    console.log("req.body in createEmployee", req.body)
+    console.log("req.body in createEmployee", req.user)
     const {
         firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation,
         salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber,
@@ -64,7 +64,7 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
         guardianName,
         guardianPhoneNumber,
         guardianRelationship,
-        author: req.user._id,
+        author: req.user.fullName,
     });
 
 
