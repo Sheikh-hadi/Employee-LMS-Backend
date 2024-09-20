@@ -16,7 +16,7 @@ const userSchema = new Schema(
             index: true,
             trim: true,
         },
-        userName: {
+        username: {
             type: String,
             required: true,
             unique: true,
@@ -42,7 +42,7 @@ const userSchema = new Schema(
         refreshToken: {
             type: String
         },
-        contacNumber: {
+        contactNumber: {
             type: String,
             required: true,
             trim: true,
@@ -53,8 +53,8 @@ const userSchema = new Schema(
             trim: true,
         },
         role: {
-            type: String,
-            required: true,
+            type: Object,
+            // required: true,
             trim: true,
         },
         status: {

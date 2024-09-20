@@ -15,22 +15,24 @@ const getEmployee = AsyncHandler(async (req, res, next) => {
 
 
 const createEmployee = AsyncHandler(async (req, res, next) => {
+    // console.log("req.body in createEmployee", req.body)
+    // console.log("req.body in createEmployee", req)
     const {
         firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation,
         salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber,
         guardianRelationship
     } = req.body;
 
-    // Check if any required field is missing
+
     if ([firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation,
         salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber,
         guardianRelationship].some((field) => !field || field.toString().trim() === "")) {
         return res.status(400).json(new ApiError(400, "All fields are required"));
     }
 
-    // Check if the employee already exists
+
     const existedUser = await Employee.findOne({ $or: [{ cnic }, { email }] });
-    console.log("existedUser: ", existedUser)
+    // console.log("existedUser in createEmployee: ", existedUser)
     if (existedUser) {
         return res.status(400).json(new ApiError(400, `${existedUser.firstName} ${existedUser.lastName} already exists with\nThis Email: ${existedUser.email}`
         ));
@@ -38,23 +40,37 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
 
     // Generate new employee ID
     const employeeCount = await Employee.countDocuments();
-    console.log("employeeCount: ", employeeCount)
+    // console.log("employeeCount in createEmployee: ", employeeCount)
     const id = employeeCount + 1;
-    console.log("id: ", id)
+    // console.log("id: ", id)
 
     // Create new employee
     const employee = await Employee.create({
-        id, firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth,
-        designation, salary, contract, bankName, accountTitle, accountNumber, guardianName,
-        guardianPhoneNumber, guardianRelationship
+        id,
+        firstName,
+        lastName,
+        email,
+        phoneNumber,
+        cnic,
+        address,
+        gender,
+        dateOfBirth,
+        designation,
+        salary,
+        contract,
+        bankName,
+        accountTitle,
+        accountNumber,
+        guardianName,
+        guardianPhoneNumber,
+        guardianRelationship,
+        author: req.user._id,
     });
 
 
     try {
-        let createdEmployee = await Employee.find({ "id": employee.id })
-        createdEmployee = createdEmployee[0]
-
-        console.log("createdEmployee: ", createdEmployee)
+        let createdEmployee = await Employee.findOne({ "id": employee.id })
+        console.log("createdEmployee in createEmployee: ", createdEmployee)
         return res.status(201).json(new ApiResponse(201, createdEmployee, `${createdEmployee.firstName} ${createdEmployee.lastName} with this mail is ${createdEmployee.email} created successfully`));
     } catch (error) {
         if (error.name === 'ValidationError') {
@@ -75,7 +91,7 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
 const updateEmployee = AsyncHandler(async (req, res) => {
     const id = req.params.id;
     // console.log("id: ", id)
-    console.log("reqbody: ", req.body)
+    // console.log("reqbody: ", req.body)
     // console.log("reqparams: ", req.params)
     // Check if ID is provided
     if (!id) {

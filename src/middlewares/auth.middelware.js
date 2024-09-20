@@ -4,8 +4,8 @@ import { ApiError } from "../utilis/ApiError.js";
 import { AsyncHandler } from "../utilis/AsyncHandler.js";
 
 export const isAuthenticated = AsyncHandler(async (req, res, next) => {
-    console.log("req.cookies", req.cookies)
-    console.log("req.body", req.body)
+    // console.log("req.cookies", req.cookies)
+    // console.log("req.body", req.body)
     const accessToken = req.cookies.accessToken;
     // console.log("accessToken", accessToken)
     if (!accessToken) {
