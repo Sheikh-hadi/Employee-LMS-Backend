@@ -5,7 +5,7 @@ import morgan from "morgan"
 
 const app = express();
 app.use(cors({
-    origin: 'http://localhost:3000' || '*',
+    origin: 'http://localhost:3000' || "https://employee-lms-6pp6.vercel.app"|| '*',
     credentials: true,
 }));
 app.use(morgan("short"))

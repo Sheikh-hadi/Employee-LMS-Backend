@@ -15,8 +15,8 @@ const getEmployee = AsyncHandler(async (req, res, next) => {
 
 
 const createEmployee = AsyncHandler(async (req, res, next) => {
-    console.log("req.body in createEmployee", req.body)
-    console.log("req.body in createEmployee", req.user)
+    // console.log("req.body in createEmployee", req.body)
+    // console.log("req.body in createEmployee", req.user)
     const {
         firstName, lastName, email, phoneNumber, cnic, address, gender, dateOfBirth, designation,
         salary, contract, bankName, accountTitle, accountNumber, guardianName, guardianPhoneNumber,
@@ -34,58 +34,62 @@ const createEmployee = AsyncHandler(async (req, res, next) => {
     const existedUser = await Employee.findOne({ $or: [{ cnic }, { email }] });
     // console.log("existedUser in createEmployee: ", existedUser)
     if (existedUser) {
-        return res.status(400).json(new ApiError(400, `${existedUser.firstName} ${existedUser.lastName} already exists with\nThis Email: ${existedUser.email}`
-        ));
-    }
-
-    // Generate new employee ID
-    const employeeCount = await Employee.countDocuments();
-    // console.log("employeeCount in createEmployee: ", employeeCount)
-    const id = employeeCount + 1;
-    // console.log("id: ", id)
-
-    // Create new employee
-    const employee = await Employee.create({
-        id,
-        firstName,
-        lastName,
-        email,
-        phoneNumber,
-        cnic,
-        address,
-        gender,
-        dateOfBirth,
-        designation,
-        salary,
-        contract,
-        bankName,
-        accountTitle,
-        accountNumber,
-        guardianName,
-        guardianPhoneNumber,
-        guardianRelationship,
-        author: req.user.fullName,
-    });
-
-
-    try {
-        let createdEmployee = await Employee.findOne({ "id": employee.id })
-        console.log("createdEmployee in createEmployee: ", createdEmployee)
-        return res.status(201).json(new ApiResponse(201, createdEmployee, `${createdEmployee.firstName} ${createdEmployee.lastName} with this mail is ${createdEmployee.email} created successfully`));
-    } catch (error) {
-        if (error.name === 'ValidationError') {
-
-            const validationErrors = Object.keys(error.errors).map(key => ({
-                field: key,
-                message: error.errors[key].message
-            }));
-            console.log("validationErrors: ", validationErrors)
-            return res.status(400).json(new ApiError(400, "Validation errors", validationErrors));
+        if (existedUser.cnic === cnic) {
+            return res.status(400).json(new ApiError(406, `${existedUser.firstName} ${existedUser.lastName} already exists with This CNIC: ${existedUser.cnic}`));
+        } else {
+            return res.status(400).json(new ApiError(407, `${existedUser.firstName} ${existedUser.lastName} already exists with This Email: ${existedUser.email}`));
         }
-        console.log("error: ", error)
-        return res.status(500).json(new ApiError(500, "Internal Server Error"));
     }
-});
+    
+
+        // Generate new employee ID
+        const employeeCount = await Employee.countDocuments();
+        // console.log("employeeCount in createEmployee: ", employeeCount)
+        const id = employeeCount + 1;
+        // console.log("id: ", id)
+
+        // Create new employee
+        const employee = await Employee.create({
+            id,
+            firstName,
+            lastName,
+            email,
+            phoneNumber,
+            cnic,
+            address,
+            gender,
+            dateOfBirth,
+            designation,
+            salary,
+            contract,
+            bankName,
+            accountTitle,
+            accountNumber,
+            guardianName,
+            guardianPhoneNumber,
+            guardianRelationship,
+            author: req.user.fullName,
+        });
+
+
+        try {
+            let createdEmployee = await Employee.findOne({ "id": employee.id })
+            // console.log("createdEmployee in createEmployee: ", createdEmployee)
+            return res.status(201).json(new ApiResponse(201, createdEmployee, `${createdEmployee.firstName} ${createdEmployee.lastName} with this mail is ${createdEmployee.email} created successfully`));
+        } catch (error) {
+            if (error.name === 'ValidationError') {
+
+                const validationErrors = Object.keys(error.errors).map(key => ({
+                    field: key,
+                    message: error.errors[key].message
+                }));
+                // console.log("validationErrors: ", validationErrors)
+                return res.status(400).json(new ApiError(400, "Validation errors", validationErrors));
+            }
+            // console.log("error: ", error)
+            return res.status(500).json(new ApiError(500, "Internal Server Error"));
+        }
+    });
 
 
 const updateEmployee = AsyncHandler(async (req, res) => {
@@ -109,7 +113,7 @@ const updateEmployee = AsyncHandler(async (req, res) => {
         { $set: req.body.formValue },
         { new: true }
     );
-    console.log("updatedEmployee: ", updatedEmployee)
+    // console.log("updatedEmployee: ", updatedEmployee)
     if (!updatedEmployee) {
         return res.status(404).json({ message: 'Employee not found' });
     }
@@ -118,7 +122,7 @@ const updateEmployee = AsyncHandler(async (req, res) => {
 
 const deleteEmployee = AsyncHandler(async (req, res) => {
     const id = req.params.id;
-    console.log("id: ", id)
+    // console.log("id: ", id)
     // console.log("reqbody: ", req.body)
     // console.log("reqparams: ", req.params)
     // Check if ID is provided
@@ -128,7 +132,7 @@ const deleteEmployee = AsyncHandler(async (req, res) => {
 
     // Find the employee by ID
     const employee = await Employee.findOne({ id: id });
-    console.log("employee: ", employee)
+    // console.log("employee: ", employee)
     if (!employee) {
         return res.status(404).json({ message: "Employee Not Found" });
     }
@@ -142,7 +146,7 @@ const deleteEmployee = AsyncHandler(async (req, res) => {
 
     // Fetch all remaining employees
     const allEmployees = await Employee.find();
-    console.log("allEmployees: ", allEmployees)
+    // console.log("allEmployees: ", allEmployees)
 
     const bulkOps = allEmployees.map((employee, index) => ({
         updateOne: {

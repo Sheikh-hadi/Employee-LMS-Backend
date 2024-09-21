@@ -65,12 +65,13 @@ const generateAccessAndRefereshTokens = async (userId) => {
 
 const registerUser = AsyncHandler(async (req, res, next) => {
 
-    const { fullName, username, email, password, contactNumber, address } = req.body;
+    const { fullName, userName, email, password, contactNumber, address } = req.body;
+    // console.log(firstName, lastName, email, password)
     console.log("req.body", req.body)
-    if ([fullName, username, email, password].some((field) => field?.trim() === "")) {
+    if ([fullName, userName, email, password].some((field) => field?.trim() === "")) {
         return res.status(400).json(new ApiError(400, "All fields are required"))
     }
-    const userExists = await User.findOne({ $or: [{ username }, { email }] })
+    const userExists =  await User.findOne({ email }); 
     console.log("userExists", userExists)
     if (userExists) {
         return res.status(400).json(new ApiError(400, "User already exists"))
@@ -88,11 +89,11 @@ const registerUser = AsyncHandler(async (req, res, next) => {
     const user = await User.create({
         id,
         fullName,
-        username,
+        userName,
         password,
         email,
-        contactNumber,
-        address,
+        // contactNumber,
+        // address,
         // avatar: avatar.url || "",
     })
 
@@ -109,7 +110,7 @@ const registerUser = AsyncHandler(async (req, res, next) => {
 
 
 const loginUser = AsyncHandler(async (req, res, next) => {
-    const { email, password, userName } = req.body;
+    const { email, password } = req.body;
     console.log("req.body", req.body);
 
     // Check for empty fields
@@ -119,7 +120,7 @@ const loginUser = AsyncHandler(async (req, res, next) => {
 
     // Find user by email 
     const user = await User.findOne({ email }); 
-    console.log("user", user);
+    console.log("user in login", user);
     if (!user) {
         return res.status(404).json(new ApiError(404, "User does not exist"));
     }

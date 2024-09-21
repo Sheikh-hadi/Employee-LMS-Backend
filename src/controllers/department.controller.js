@@ -20,24 +20,20 @@ const createDepartment = AsyncHandler(async (req, res, next) => {
             (400, "All fields are required"));
     }
     const checkDepartment = await Department.findOne({ name });
-    console.log("checkDepartment: ", checkDepartment)
+    // console.log("checkDepartment: ", checkDepartment)
     if (checkDepartment) {
         return res.status(400).json(new ApiError(400, "Department Already Exists"));
     }
     const allDepartment = await Department.countDocuments();
-    console.log("allDepartment: ", allDepartment)
+    // console.log("allDepartment: ", allDepartment)
     const id = allDepartment + 1;
     const value = name.replace(/\s+/g, '').toLowerCase();
-    const department = new Department({
-        id,
-        name,
-        value
-    });
-    console.log("department: ", department)
+    const department = await Department.create({ id, name, value });
+    // console.log("department: ", department)
     if (!department) {
         return res.status(400).json(new ApiError(400, "Department Not Created"));
     }
-    await department.save();
+
     return res
         .status(201)
         .json(new ApiResponse(201, department, "Department Created Successfully"));
@@ -45,26 +41,44 @@ const createDepartment = AsyncHandler(async (req, res, next) => {
 
 const deleteDepartment = AsyncHandler(async (req, res, next) => {
     const id = req.params.id;
+
+    // Check for valid ID
     if (!id) {
         return res.status(400).json(new ApiError(400, "Please Enter a valid Department Id"));
     }
-    console.log("id: ", id)
-    const department = await Department.findOne({ id: id });
-    console.log("department: ", department)
+
+    // Find the department to delete
+    const department = await Department.findOne({ "id": id });
     if (!department) {
         return res.status(404).json(new ApiError(404, "Department Not Found"));
     }
+
+    // Delete the department
     await Department.deleteOne({ "id": id });
-    return res
-        .status(200)
-        .json(new ApiResponse(200, department, "Department Deleted Successfully"));
+
+    const allDepartment = await Department.find();
+    // console.log("allDepartment: ", allDepartment)
+
+    const bulkOps = allDepartment.map((department, index) => ({
+        updateOne: {
+            filter: { _id: department._id },
+            update: { $set: { id: index + 1 } }
+        }
+    }));
+
+    // 
+    await Department.bulkWrite(bulkOps);
+    
+
+    return res.status(200).json(new ApiResponse(200, department, "Department Deleted Successfully"));
 });
+
 
 const updateDepartment = AsyncHandler(async (req, res, next) => {
     const id = req.params.id;
     const { name } = req.body;
-    console.log("id: ", id)
-    console.log("name: ", name)
+    // console.log("id: ", id)
+    // console.log("name: ", name)
     const department = await Department.findOne({ id: id });
     if (!department) {
         return res.status(404).json(new ApiError(404, "Department Not Found"));

@@ -16,7 +16,7 @@ const userSchema = new Schema(
             index: true,
             trim: true,
         },
-        username: {
+        userName: {
             type: String,
             required: true,
             unique: true,
@@ -44,12 +44,12 @@ const userSchema = new Schema(
         },
         contactNumber: {
             type: String,
-            required: true,
+            // required: true,
             trim: true,
         },
         address: {
             type: String,
-            required: true,
+            // required: true,
             trim: true,
         },
         role: {
