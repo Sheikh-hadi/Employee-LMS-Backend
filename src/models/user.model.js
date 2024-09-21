@@ -19,16 +19,14 @@ const userSchema = new Schema(
         userName: {
             type: String,
             required: true,
-            unique: true,
             trim: true,
-            lowercase: true
         },
         email: {
             type: String,
             required: true,
             unique: true,
             trim: true,
-            lowercase: true
+            lowercase: true,
         },
         password: {
             type: String,
@@ -37,24 +35,22 @@ const userSchema = new Schema(
         },
         avatar: {
             type: String, // cloudinary url
-            // required: true,
         },
         refreshToken: {
-            type: String
+            type: String,
         },
         contactNumber: {
-            type: String,
-            // required: true,
+            type: Number,
+            required: true,
             trim: true,
         },
         address: {
             type: String,
-            // required: true,
+            required: true,
             trim: true,
         },
         role: {
             type: Object,
-            // required: true,
             trim: true,
         },
         status: {
@@ -62,49 +58,54 @@ const userSchema = new Schema(
             required: true,
             trim: true,
             default: true,
-        }
-
+        },
     },
     {
         timestamps: true,
     }
 );
+
+// Hash the password before saving the user
 userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) {
-        next();
+        return next();
     }
     this.password = await bcrypt.hash(this.password, 10);
+    next();
 });
 
+// Compare passwords
 userSchema.methods.comparePassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
+// Generate Access Token
 userSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {
             _id: this._id,
             email: this.email,
-            username: this.username,
-            fullName: this.fullName
+            userName: this.userName, // Ensure case consistency
+            fullName: this.fullName,
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
         }
-    )
-}
+    );
+};
+
+// Generate Refresh Token
 userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {
             id: this._id,
-
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
         }
-    )
+    );
 };
 
 export const User = mongoose.model("User", userSchema);

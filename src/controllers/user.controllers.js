@@ -19,12 +19,12 @@ const getUser = AsyncHandler(async (req, res, next) => {
 
 const getUserById = AsyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    console.log("id: ", id);
+    console.log("id in getUserbyID: ", id);
     if (!id) {
         return res.status(400).json(new ApiError(400, "User id is required"))
     }
-    let user = await User.findone({ "id": id }).select("-password -refreshToken ")
-    console.log("user: ", user)
+    let user = await User.find({ "id": id }).select("-password -refreshToken ")
+    console.log("user in getUserById: ", user)
     if (!user.length) {
         return res.status(400).json(new ApiError(400, "User not found"))
     }
@@ -64,48 +64,73 @@ const generateAccessAndRefereshTokens = async (userId) => {
 // return res
 
 const registerUser = AsyncHandler(async (req, res, next) => {
-
     const { fullName, userName, email, password, contactNumber, address } = req.body;
-    // console.log(firstName, lastName, email, password)
-    console.log("req.body", req.body)
-    if ([fullName, userName, email, password].some((field) => field?.trim() === "")) {
-        return res.status(400).json(new ApiError(400, "All fields are required"))
-    }
-    const userExists =  await User.findOne({ email }); 
-    console.log("userExists", userExists)
-    if (userExists) {
-        return res.status(400).json(new ApiError(400, "User already exists"))
+    console.log("User Name:", userName); // Log userName for debugging
+    console.log("req.body", req.body);
+
+    // Validate required fields
+    if ([fullName, userName, email, password, contactNumber, address].some(field => !field || field.trim() === "")) {
+        return res.status(400).json(new ApiError(400, "All fields are required"));
     }
 
-    // const avatarLocalPath = req.files?.avatar[0]?.path;
-    // const avatar = await uploadOnCloudinary(avatarLocalPath)
-    // if(!avatarLocalPath){
-    //     return res.status(400).json(new ApiError(400, "Avatar file is required"))
-    // }
-    const userLength = await User.countDocuments();
-    const id = userLength + 1;
-    console.log("userLength", userLength)
-    console.log("id", id)
+    // Check if user already exists
+    const userExists = await User.findOne({ $or: [{ email }, { userName }] });
+    console.log("userExists", userExists);
+
+    if (userExists) {
+        if (userExists.email === email) {
+            console.log("Existing email:", userExists.email);
+            return res.status(400).json(new ApiError(400, "Email already exists"));
+        }
+        if (userExists.userName === userName) {
+            console.log("Existing username:", userExists.userName);
+            return res.status(400).json(new ApiError(400, "Username already exists"));
+        }
+    }
+
+    // Generate a new user ID
+    const userCount = await User.countDocuments();
+    const id = userCount + 1;
+
+    console.log("userCount", userCount);
+    console.log("id", id);
+
+    // Create the user
+    const data = {
+        id,
+        fullName,
+        userName,
+        password,
+        email,
+        contactNumber,
+        address,
+    };
+
+    console.log("data", data);
+
+
     const user = await User.create({
         id,
         fullName,
         userName,
         password,
         email,
-        // contactNumber,
-        // address,
-        // avatar: avatar.url || "",
-    })
+        contactNumber,
+        address,
+    });
+
 
     const createdUser = await User.findById(user._id).select("-password -refreshToken -_id");
-    console.log("createdUser", createdUser)
+    console.log("createdUser", createdUser);
+
     if (!createdUser) {
-        return res.status(400).json(new ApiError(400, "User not created"))
+        return res.status(400).json(new ApiError(400, "User not created"));
     }
-    return res
-        .status(200)
-        .json(new ApiResponse(200, createdUser, "User created successfully"))
+
+    return res.status(200).json(new ApiResponse(200, createdUser, "User created successfully"));
 });
+
+
 
 
 
@@ -119,7 +144,7 @@ const loginUser = AsyncHandler(async (req, res, next) => {
     }
 
     // Find user by email 
-    const user = await User.findOne({ email }); 
+    const user = await User.findOne({ email });
     console.log("user in login", user);
     if (!user) {
         return res.status(404).json(new ApiError(404, "User does not exist"));

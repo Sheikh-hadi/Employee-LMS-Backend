@@ -15,7 +15,7 @@ export const isAuthenticated = AsyncHandler(async (req, res, next) => {
         const decodedToken = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET)
         // console.log("decodedToken", decodedToken)
         const user = await User.findById(decodedToken._id)
-        console.log("user", user)
+        // console.log("user", user)
         if (!user) {
             return res.status(401).json(new ApiError(401, "unauthorized request"))
         }
