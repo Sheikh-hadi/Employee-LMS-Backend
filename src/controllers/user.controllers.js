@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 
 const getUser = AsyncHandler(async (req, res, next) => {
     const user = await User.find().select('-password -refreshToken');
-    console.log("user", user)
+    // console.log("user", user)
     if (!user.length) {
         return res.status(404).json(new ApiError(404, "User does not exist"))
     }
@@ -19,12 +19,12 @@ const getUser = AsyncHandler(async (req, res, next) => {
 
 const getUserById = AsyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    console.log("id in getUserbyID: ", id);
+    // console.log("id in getUserbyID: ", id);
     if (!id) {
         return res.status(400).json(new ApiError(400, "User id is required"))
     }
     let user = await User.find({ "id": id }).select("-password -refreshToken ")
-    console.log("user in getUserById: ", user)
+    // console.log("user in getUserById: ", user)
     if (!user.length) {
         return res.status(400).json(new ApiError(400, "User not found"))
     }
@@ -65,8 +65,8 @@ const generateAccessAndRefereshTokens = async (userId) => {
 
 const registerUser = AsyncHandler(async (req, res, next) => {
     const { fullName, userName, email, password, contactNumber, address } = req.body;
-    console.log("User Name:", userName); // Log userName for debugging
-    console.log("req.body", req.body);
+    // console.log("User Name:", userName); 
+    // console.log("req.body", req.body);
 
     // Validate required fields
     if ([fullName, userName, email, password, contactNumber, address].some(field => !field || field.trim() === "")) {
@@ -75,15 +75,15 @@ const registerUser = AsyncHandler(async (req, res, next) => {
 
     // Check if user already exists
     const userExists = await User.findOne({ $or: [{ email }, { userName }] });
-    console.log("userExists", userExists);
+    // console.log("userExists", userExists);
 
     if (userExists) {
         if (userExists.email === email) {
-            console.log("Existing email:", userExists.email);
+            // console.log("Existing email:", userExists.email);
             return res.status(400).json(new ApiError(400, "Email already exists"));
         }
         if (userExists.userName === userName) {
-            console.log("Existing username:", userExists.userName);
+            // console.log("Existing username:", userExists.userName);
             return res.status(400).json(new ApiError(400, "Username already exists"));
         }
     }
@@ -92,8 +92,8 @@ const registerUser = AsyncHandler(async (req, res, next) => {
     const userCount = await User.countDocuments();
     const id = userCount + 1;
 
-    console.log("userCount", userCount);
-    console.log("id", id);
+    // console.log("userCount", userCount);
+    // console.log("id", id);
 
     // Create the user
     const data = {
@@ -121,7 +121,7 @@ const registerUser = AsyncHandler(async (req, res, next) => {
 
 
     const createdUser = await User.findById(user._id).select("-password -refreshToken -_id");
-    console.log("createdUser", createdUser);
+    // console.log("createdUser", createdUser);
 
     if (!createdUser) {
         return res.status(400).json(new ApiError(400, "User not created"));
@@ -130,13 +130,9 @@ const registerUser = AsyncHandler(async (req, res, next) => {
     return res.status(200).json(new ApiResponse(200, createdUser, "User created successfully"));
 });
 
-
-
-
-
 const loginUser = AsyncHandler(async (req, res, next) => {
     const { email, password } = req.body;
-    console.log("req.body", req.body);
+    // console.log("req.body", req.body);
 
     // Check for empty fields
     if ([email, password].some((field) => field?.trim() === "")) {
@@ -145,7 +141,7 @@ const loginUser = AsyncHandler(async (req, res, next) => {
 
     // Find user by email 
     const user = await User.findOne({ email });
-    console.log("user in login", user);
+    // console.log("user in login", user);
     if (!user) {
         return res.status(404).json(new ApiError(404, "User does not exist"));
     }
@@ -162,7 +158,7 @@ const loginUser = AsyncHandler(async (req, res, next) => {
 
     // Fetch user again if necessary (though you already have the `user` object)
     const loggedInUser = await User.findById(user._id).select('-_id -email -password');
-    console.log("loggedInUser", loggedInUser);
+    // console.log("loggedInUser", loggedInUser);
     if (!loggedInUser) {
         return res.status(404).json(new ApiError(404, "User does not exist"));
     }
@@ -179,7 +175,6 @@ const loginUser = AsyncHandler(async (req, res, next) => {
         .cookie("accessToken", accessToken, options)
         .json(new ApiResponse(200, { user: loggedInUser, accessToken, refreshToken }, "User logged In Successfully"));
 });
-
 
 const deleteUser = AsyncHandler(async (req, res, next) => {
     const { id } = req.params;
@@ -201,8 +196,8 @@ const deleteUser = AsyncHandler(async (req, res, next) => {
         .json(new ApiResponse(200, deleteUser, "User deleted successfully"))
 });
 
-const logoutUser = AsyncHandler(async (req, res) => {
-    console.log("req.user", req.user)
+const logoutUser = AsyncHandler(async (req, res, next) => {
+    // console.log("req.user", req.user)
     await User.findByIdAndUpdate(
         req.user._id,
         {
@@ -227,7 +222,7 @@ const logoutUser = AsyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "User logged Out"))
 })
 
-const refreshAccessToken = AsyncHandler(async (req, res) => {
+const refreshAccessToken = AsyncHandler(async (req, res, next) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
     if (!incomingRefreshToken) {
@@ -275,4 +270,41 @@ const refreshAccessToken = AsyncHandler(async (req, res) => {
 
 })
 
-export { getUser, registerUser, deleteUser, loginUser, logoutUser, refreshAccessToken, getUserById }
+const updateUser = AsyncHandler(async (req, res, next) => {
+    const id = req.params.id;
+    // console.log("req.body: ", req)
+    // console.log("id: ", id)
+    const { fullName, userName, email, contactNumber, address, status } = req.body;
+    console.log("req.body: ", req.body)
+    if ([fullName, userName, email, contactNumber, address].some(field => !field || field.trim() === "")) {
+        return res.status(400).json(new ApiError(400, "All fields are required"));
+    }
+
+    const user = await User.findOne({ "id": id });
+    console.log("user: ", user)
+    if (!user) {
+        return res.status(404).json(new ApiError(404, "User not found"));
+    }
+    const updateUser = await User.findByIdAndUpdate(
+        user._id,
+        {
+            fullName,
+            userName,
+            email,
+            contactNumber,
+            address,
+            status
+        },
+        {
+            new: true
+        }
+    ).select('-_id, -password, -refreshToken, ');
+    // console.log(updateUser)
+    return res
+    .status(200)
+    .json(new ApiResponse(200, updateUser, "User updated successfully"))
+
+
+})
+
+export { getUser, registerUser, deleteUser, loginUser, logoutUser, refreshAccessToken, getUserById, updateUser }

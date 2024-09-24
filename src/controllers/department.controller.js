@@ -79,7 +79,7 @@ const updateDepartment = AsyncHandler(async (req, res, next) => {
     const { name } = req.body;
     // console.log("id: ", id)
     // console.log("name: ", name)
-    const department = await Department.findOne({ id: id });
+    const department = await Department.findOne({" id": id });
     if (!department) {
         return res.status(404).json(new ApiError(404, "Department Not Found"));
     }

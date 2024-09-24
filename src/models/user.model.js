@@ -50,7 +50,7 @@ const userSchema = new Schema(
             trim: true,
         },
         role: {
-            type: Object,
+            type: st,
             trim: true,
         },
         status: {
