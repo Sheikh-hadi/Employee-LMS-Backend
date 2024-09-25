@@ -79,23 +79,18 @@ const registerUser = AsyncHandler(async (req, res, next) => {
 
     if (userExists) {
         if (userExists.email === email) {
-            // console.log("Existing email:", userExists.email);
             return res.status(400).json(new ApiError(400, "Email already exists"));
         }
         if (userExists.userName === userName) {
-            // console.log("Existing username:", userExists.userName);
             return res.status(400).json(new ApiError(400, "Username already exists"));
         }
     }
 
-    // Generate a new user ID
+
     const userCount = await User.countDocuments();
     const id = userCount + 1;
 
-    // console.log("userCount", userCount);
-    // console.log("id", id);
-
-    // Create the user
+  
     const data = {
         id,
         fullName,

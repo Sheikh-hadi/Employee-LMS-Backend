@@ -32,6 +32,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.15",
     "nodemon": "^3.1.6",
+    "otp-generator": "^4.0.1",
     "rexpress": "^0.2.0"
   }
 }
