@@ -3,6 +3,7 @@ import { AsyncHandler } from "../utilis/AsyncHandler.js"
 import { ApiError } from "../utilis/ApiError.js"
 import { ApiResponse } from "../utilis/ApiResponse.js"
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 
 
@@ -90,7 +91,7 @@ const registerUser = AsyncHandler(async (req, res, next) => {
     const userCount = await User.countDocuments();
     const id = userCount + 1;
 
-  
+
     const data = {
         id,
         fullName,
@@ -267,39 +268,73 @@ const refreshAccessToken = AsyncHandler(async (req, res, next) => {
 
 const updateUser = AsyncHandler(async (req, res, next) => {
     const id = req.params.id;
-    // console.log("req.body: ", req)
-    // console.log("id: ", id)
     const { fullName, userName, email, contactNumber, address, status } = req.body;
-    console.log("req.body: ", req.body)
-    if ([fullName, userName, email, contactNumber, address].some(field => !field || field.trim() === "")) {
+    console.log("req.body: ", req.body);
+
+    // Convert all fields to strings and trim them
+    const fields = [fullName, userName, email, contactNumber, address].map(field => String(field).trim());
+
+    if (fields.some(field => !field)) {
         return res.status(400).json(new ApiError(400, "All fields are required"));
     }
 
     const user = await User.findOne({ "id": id });
-    console.log("user: ", user)
+    console.log("user: ", user);
     if (!user) {
         return res.status(404).json(new ApiError(404, "User not found"));
     }
-    const updateUser = await User.findByIdAndUpdate(
+
+    const updatedUser = await User.findByIdAndUpdate(
         user._id,
         {
-            fullName,
-            userName,
-            email,
-            contactNumber,
-            address,
-            status
+            fullName: fields[0],
+            userName: fields[1],
+            email: fields[2],
+            contactNumber: fields[3],
+            address: fields[4],
+            status: fields[5]
         },
         {
             new: true
         }
-    ).select('-_id, -password, -refreshToken, ');
-    // console.log(updateUser)
+    ).select('-_id -password -refreshToken');
+
+    return res.status(200).json(new ApiResponse(200, updatedUser, "User updated successfully"));
+});
+
+
+const checkMail = AsyncHandler(async (req, res, next) => {
+    const { email } = req.body;
+    console.log("email: ", email)
+    if (!email) {
+        return res.status(400).json(new ApiError(400, "Email is required"));
+    }
+    const user = await User.findOne({ email }).select('-_id, -password, -refreshToken, ');
+    console.log("user: ", user)
+    if (!user) {
+        return res.status(404).json(new ApiError(404, "User not found"));
+    }
     return res
-    .status(200)
-    .json(new ApiResponse(200, updateUser, "User updated successfully"))
-
-
+        .status(200)
+        .json(new ApiResponse(201, user, "User found"));
 })
 
-export { getUser, registerUser, deleteUser, loginUser, logoutUser, refreshAccessToken, getUserById, updateUser }
+const changeCurrentPassword = AsyncHandler(async (req, res) => {
+    const { email, newPassword } = req.body
+    console.log("email: ", email);
+    console.log("newPassword: ", newPassword);
+
+    const user = await User.findOne({ email })
+    if (!user) {
+        return res.status(404).json(new ApiError(404, "User not Exist"))
+    }
+
+    user.password = newPassword
+    await user.save({ validateBeforeSave: false })
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "Password changed successfully"))
+})
+
+export { getUser, registerUser, deleteUser, loginUser, logoutUser, refreshAccessToken, getUserById, updateUser, checkMail, changeCurrentPassword }

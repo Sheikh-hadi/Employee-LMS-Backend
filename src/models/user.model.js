@@ -19,6 +19,7 @@ const userSchema = new Schema(
         userName: {
             type: String,
             required: true,
+            unique: true,
             trim: true,
         },
         email: {
@@ -40,7 +41,7 @@ const userSchema = new Schema(
             type: String,
         },
         contactNumber: {
-            type: Number,
+            type: String,
             required: true,
             trim: true,
         },
